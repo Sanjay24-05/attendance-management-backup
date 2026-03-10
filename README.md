@@ -227,19 +227,6 @@ From `db.json`:
 - This is legacy after migration to `employee.service.ts` / `leave.service.ts`
 - Safe to remove in cleanup, but does not block runtime
 
-## Documentation Notes for Submission
-
-For project handover or academic submission, include:
-
-- Screenshots for each module:
-  - Dashboard
-  - Employee list + add/edit dialog
-  - Attendance tracker
-  - Leave request form
-  - Leave approval (HR view)
-- Route guard behavior demonstration (Employee vs HR)
-- API mode vs fallback mode behavior summary
-- Feature checklist mapped to assignment requirements
 
 ## Useful Commands
 
