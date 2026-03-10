@@ -5,7 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
-import { DataService } from '../../services/data.service';
+import { EmployeeService } from '../../services/employee.service';
+import { LeaveService } from '../../services/leave.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,32 +29,38 @@ export class DashboardComponent implements OnInit {
   pendingLeaves: number = 0;
   presentPercentage: number = 0;
 
-  constructor(private dataService: DataService) {}
+  constructor(
+    private employeeService: EmployeeService,
+    private leaveService: LeaveService
+  ) {}
 
   ngOnInit(): void {
-    this.dataService.getEmployees().subscribe(employees => {
+    this.employeeService.getEmployees().subscribe(employees => {
       this.totalEmployees = employees.length;
       this.updateAttendanceSummary();
     });
 
-    this.dataService.getAttendance().subscribe(() => {
+    this.employeeService.getAttendance().subscribe(() => {
       this.updateAttendanceSummary();
     });
 
-    this.dataService.getLeaveRequests().subscribe(() => {
-      this.pendingLeaves = this.dataService.getPendingLeaveRequests();
+    this.leaveService.getLeaveRequests().subscribe(requests => {
+      this.pendingLeaves = requests.filter(request => request.status === 'Pending').length;
     });
   }
 
   private updateAttendanceSummary(): void {
-    const summary = this.dataService.getAttendanceSummary();
-    this.presentCount = summary.present;
-    this.absentCount = summary.absent;
-    this.presentPercentage =
-      this.totalEmployees > 0 ? Math.round((this.presentCount / this.totalEmployees) * 100) : 0;
+    const todayDate = this.getTodayDate();
+    this.employeeService.getAttendance().subscribe(records => {
+      const todayAttendance = records.filter(record => record.date === todayDate);
+      this.presentCount = todayAttendance.filter(record => record.status === 'Present').length;
+      this.absentCount = todayAttendance.filter(record => record.status === 'Absent').length;
+      this.presentPercentage =
+        this.totalEmployees > 0 ? Math.round((this.presentCount / this.totalEmployees) * 100) : 0;
+    });
   }
 
   getTodayDate(): string {
-    return this.dataService.getTodayDateString();
+    return this.employeeService.getTodayDateString();
   }
 }

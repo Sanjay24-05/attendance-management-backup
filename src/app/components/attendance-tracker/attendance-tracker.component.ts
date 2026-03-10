@@ -6,9 +6,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Employee } from '../../../employee.model';
 import { AttendanceRecord } from '../../../attendance.model';
-import { DataService } from '../../services/data.service';
+import { EmployeeService } from '../../services/employee.service';
+import { HighlightAbsentDirective } from '../../directives/highlight-absent.directive';
 
 @Component({
   selector: 'app-attendance-tracker',
@@ -20,7 +22,9 @@ import { DataService } from '../../services/data.service';
     MatIconModule,
     MatCardModule,
     MatChipsModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatSnackBarModule,
+    HighlightAbsentDirective
   ],
   templateUrl: './attendance-tracker.component.html',
   styleUrls: ['./attendance-tracker.component.css']
@@ -31,16 +35,39 @@ export class AttendanceTrackerComponent implements OnInit {
   displayedColumns: string[] = ['name', 'department', 'status', 'action'];
   attendance: Map<number, AttendanceRecord> = new Map();
 
-  constructor(private dataService: DataService) {
-    this.todayDate = this.dataService.getTodayDateString();
+  constructor(
+    private employeeService: EmployeeService,
+    private snackBar: MatSnackBar
+  ) {
+    this.todayDate = this.employeeService.getTodayDateString();
   }
 
   ngOnInit(): void {
-    this.dataService.getEmployees().subscribe(employees => {
+    this.employeeService.getEmployees().subscribe(employees => {
       this.employees = employees;
     });
 
-    this.dataService.getAttendance().subscribe(records => {
+    this.refreshAttendance();
+  }
+
+  getAttendanceStatus(employeeId: number): 'Present' | 'Absent' {
+    return this.attendance.get(employeeId)?.status || 'Absent';
+  }
+
+  markPresent(employeeId: number): void {
+    this.updateAttendance(employeeId, 'Present');
+  }
+
+  markAbsent(employeeId: number): void {
+    this.updateAttendance(employeeId, 'Absent');
+  }
+
+  getStatusColor(status: string): string {
+    return status === 'Present' ? 'accent' : 'warn';
+  }
+
+  private refreshAttendance(): void {
+    this.employeeService.getAttendance().subscribe(records => {
       this.attendance.clear();
       records.forEach(record => {
         if (record.date === this.todayDate) {
@@ -50,23 +77,10 @@ export class AttendanceTrackerComponent implements OnInit {
     });
   }
 
-  getAttendanceStatus(employeeId: number): 'Present' | 'Absent' {
-    return this.attendance.get(employeeId)?.status || 'Absent';
-  }
-
-  toggleAttendance(employeeId: number): void {
-    this.dataService.toggleAttendance(employeeId);
-  }
-
-  markPresent(employeeId: number): void {
-    this.dataService.markAttendance(employeeId, 'Present');
-  }
-
-  markAbsent(employeeId: number): void {
-    this.dataService.markAttendance(employeeId, 'Absent');
-  }
-
-  getStatusColor(status: string): string {
-    return status === 'Present' ? 'accent' : 'warn';
+  private updateAttendance(employeeId: number, status: 'Present' | 'Absent'): void {
+    this.employeeService.saveAttendance(employeeId, status).subscribe(() => {
+      this.refreshAttendance();
+      this.snackBar.open(`Attendance marked as ${status}`, 'Close', { duration: 2000 });
+    });
   }
 }

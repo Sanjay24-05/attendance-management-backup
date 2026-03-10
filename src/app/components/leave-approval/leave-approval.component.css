@@ -23,6 +23,14 @@ mat-card-title {
   overflow-x: auto;
 }
 
+.approval-form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 16px;
+  flex-wrap: wrap;
+}
+
 .approval-table {
   width: 100%;
 }

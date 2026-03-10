@@ -1,431 +1,258 @@
-# Attendance Management System
+# Employee Attendance and Leave Management System
 
-A modern, responsive web-based attendance management application built with Angular 20. This system enables efficient tracking and management of attendance records for educational institutions or organizations.
+Angular + TypeScript + Angular Material application for employee management, attendance tracking, leave requests, and HR leave approval.
 
-## Table of Contents
+## Architecture Diagram
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Development](#development)
-- [Building for Production](#building-for-production)
-- [Testing](#testing)
-- [Project Structure](#project-structure)
-- [Code Scaffolding](#code-scaffolding)
-- [Configuration](#configuration)
+```mermaid
+flowchart LR
+  U[User Browser] --> A[Angular App]
 
-## Overview
+  subgraph A[Angular Frontend]
+    N[App Shell + Role Switcher]
+    R[Router + Role Guard]
+    C1[Dashboard]
+    C2[Employee List + Detail]
+    C3[Attendance Tracker]
+    C4[Leave Request]
+    C5[Leave Approval]
+    S1[AuthService]
+    S2[EmployeeService]
+    S3[LeaveService]
+    P[EmployeeFilterPipe]
+    D[HighlightAbsentDirective]
+  end
 
-The Attendance Management System is a lightweight, user-friendly application designed to streamline the process of recording, tracking, and reporting attendance. Built with the latest Angular framework, it provides a modern, intuitive interface for managing attendance records efficiently.
+  N --> R
+  R --> C1
+  R --> C2
+  R --> C3
+  R --> C4
+  R --> C5
 
-This application is suitable for:
-- Educational institutions (schools, colleges, universities)
-- Corporate organizations
-- Training centers and workshops
-- Any entity requiring centralized attendance tracking
+  C1 --> S2
+  C1 --> S3
+  C2 --> S2
+  C3 --> S2
+  C4 --> S2
+  C4 --> S3
+  C5 --> S2
+  C5 --> S3
 
-## Features
+  R --> S1
+  C2 --> P
+  C3 --> D
 
-- **User-Friendly Interface**: Clean and intuitive design for easy navigation
-- **Attendance Tracking**: Simple interface to mark and record attendance
-- **Dashboard**: Overview of attendance statistics and summaries
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Real-time Updates**: Instant reflection of attendance changes
-- **Data Management**: Create, read, update, and delete attendance records
-- **Reporting**: Generate attendance reports for analysis
-- **Scalable Architecture**: Built with Angular best practices for easy expansion
+  S2 --> API[(JSON Server :3000)]
+  S3 --> API
+  API --> DB[(db.json)]
+
+  S2 -.fallback.-> L[(Local in-memory store)]
+  S3 -.fallback.-> L
+```
+
+## Current Status
+
+This repository is **actively implemented and runnable** with:
+
+- Employee CRUD (add/edit/delete)
+- Daily attendance tracking (present/absent)
+- Leave request submission (reactive form)
+- Leave approval/rejection (HR-only route)
+- Dashboard summary cards and attendance progress
+- Department filter pipe and absent-row highlight directive
+- Route guard + role switching in navbar
+- Mock backend support with JSON Server
+- Offline fallback mode when API is unavailable
+- Role-based coverage with shared Leave Request access for Employee and HR
 
 ## Tech Stack
 
-The project uses modern web technologies:
+- Angular 20 (standalone components)
+- TypeScript
+- Angular Material
+- RxJS
+- JSON Server (mock API)
 
-| Technology | Purpose | Version |
-|-----------|---------|---------|
-| **Angular** | Frontend Framework | 20.3.13 |
-| **TypeScript** | Programming Language | Latest |
-| **SCSS** | Styling | - |
-| **HTML5** | Markup | - |
-| **Angular CLI** | Development & Build Tool | 20.3.13 |
+## Project Structure
 
-### Language Distribution
-- TypeScript: 67.7%
-- SCSS: 14.9%
-- HTML: 11.3%
-- CSS: 6.1%
+```text
+attendance-management-backup/
+├── db.json
+├── package.json
+├── src/
+│   ├── attendance.model.ts
+│   ├── employee.model.ts
+│   ├── leave.model.ts
+│   ├── main.ts
+│   └── app/
+│       ├── app.component.*
+│       ├── app.routes.ts
+│       ├── components/
+│       │   ├── dashboard/
+│       │   ├── employee-list/
+│       │   ├── employee-detail/
+│       │   ├── attendance-tracker/
+│       │   ├── leave-request/
+│       │   └── leave-approval/
+│       ├── dialogs/
+│       │   └── employee-form-dialog/
+│       ├── directives/
+│       │   └── highlight-absent.directive.ts
+│       ├── guards/
+│       │   └── role.guard.ts
+│       ├── pipes/
+│       │   └── employee-filter.pipe.ts
+│       └── services/
+│           ├── employee.service.ts
+│           ├── leave.service.ts
+│           ├── auth.service.ts
+│           └── data.service.ts (legacy/unused)
+└── ...
+```
+
+## Routes
+
+- `/dashboard` (HR only)
+- `/employees` (HR only)
+- `/employees/:id` (HR only)
+- `/attendance` (HR only)
+- `/leave-request` (Employee and HR)
+- `/leave-approval` (HR only)
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your system:
-
-- **Node.js** (v18.x or higher recommended)
-- **npm** (v9.x or higher) or **yarn**
-- **Angular CLI** (v20.3.13 or compatible)
-- A modern web browser (Chrome, Firefox, Safari, or Edge)
-
-### Installation of Prerequisites
-
-1. **Install Node.js and npm**
-   - Download from [nodejs.org](https://nodejs.org/)
-   - Verify installation: `node --version` and `npm --version`
-
-2. **Install Angular CLI**
-   ```bash
-   npm install -g @angular/cli@20.3.13
-   ```
-
-3. **Verify Angular CLI installation**
-   ```bash
-   ng version
-   ```
+- Node.js 18+
+- npm 9+
 
 ## Installation
 
-Follow these steps to set up the project locally:
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/ChanchalVora/attendance-management.git
-   cd attendance-management
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-   This will install all required packages listed in `package.json`
-
-3. **Verify Installation**
-   ```bash
-   npm list
-   ```
-
-## Development
-
-### Starting the Development Server
-
-To start the local development server with live reload:
-
 ```bash
-ng serve
+npm install
 ```
 
-Or using npm:
+## Run the App
+
+### Recommended (with mock API persistence)
+
+Use two terminals:
+
+**Terminal 1 (mock API):**
+```bash
+npm run start:api
+```
+
+**Terminal 2 (Angular app):**
+```bash
+npm start
+```
+
+Open: `http://localhost:4200`
+
+### Frontend-only mode (no API)
+
+You can run only Angular:
 
 ```bash
 npm start
 ```
 
-Once the server is running:
-- Open your browser and navigate to `http://localhost:4200/`
-- The application will automatically reload whenever you modify any source files
-- Check the terminal for compilation status and errors
+If `http://localhost:3000` is unavailable, services automatically fall back to local in-memory data so the UI still works.
 
-### Development Workflow
-
-1. Make changes to your code in the `src/` directory
-2. The browser will automatically refresh with your changes
-3. Check the browser console for any compilation errors
-4. Use Angular DevTools browser extension for debugging
-
-### Hot Module Replacement (HMR)
-
-Changes are automatically reflected in your browser without manual refresh, improving development workflow efficiency.
-
-## Building for Production
-
-To build the project for production deployment:
+## Build
 
 ```bash
-ng build
+npm run build
 ```
 
-Or with optimization flags:
+## Test
 
 ```bash
-ng build --configuration production
+npm test
 ```
 
-### Build Output
+## Role Switching and Access
 
-- Build artifacts are stored in the `dist/` directory
-- The production build automatically optimizes your application for:
-  - Performance (minification and bundling)
-  - Speed (tree-shaking and lazy loading)
-  - File size (compression)
+Role selector is available in the top navbar:
 
-### Production Build Options
+- **Employee**
+  - Can access Leave Requests (`/leave-request`)
+  - Dashboard, Employees, Attendance, and Leave Approval are hidden and route-blocked
+  - Switching to Employee redirects to Leave Requests
 
-```bash
-# Build with all optimizations
-ng build --prod
+- **HR**
+  - Can access Dashboard, Employees, Attendance, Leave Requests, and Leave Approval
+  - Leave Request remains visible for HR
 
-# Build with source maps for debugging
-ng build --source-map
+## Forms and Validation
 
-# Build with specific configuration
-ng build --configuration=staging
-```
+- **Template-driven form**: Employee add/edit dialog
+- **Reactive forms**:
+  - Leave request submission
+  - Leave approval decision form
+- Includes required field checks and date-range validation for leave request
 
-## Testing
+## API Endpoints (JSON Server)
 
-### Unit Tests
+From `db.json`:
 
-Execute unit tests using the Karma test runner:
-
-```bash
-ng test
-```
-
-Features:
-- Runs tests in watch mode by default
-- Automatically reruns tests on file changes
-- Generates code coverage reports (optional)
-
-**Run tests with coverage:**
-```bash
-ng test --code-coverage
-```
-
-### End-to-End (E2E) Tests
-
-For end-to-end testing:
-
-```bash
-ng e2e
-```
-
-**Note**: Angular CLI does not come with an end-to-end testing framework by default. You can choose from:
-- Cypress
-- Protractor (deprecated)
-- Playwright
-- WebDriver
-
-### Test Configuration
-
-Test configurations are defined in:
-- `karma.conf.js` - Unit test configuration
-- `tsconfig.spec.json` - TypeScript configuration for tests
-- Individual `.spec.ts` files - Test cases
-
-## Project Structure
-
-```
-attendance-management/
-├── src/
-│   ├── app/                    # Angular application code
-│   │   ├── components/         # Reusable UI components
-│   │   ├── services/           # Business logic and API services
-│   │   ├── models/             # TypeScript interfaces and classes
-│   │   ├── pipes/              # Custom pipes
-│   │   ├── directives/         # Custom directives
-│   │   ├── app.component.*     # Root component
-│   │   └── app.module.ts       # Root module
-│   ├── assets/                 # Static files (images, icons, data)
-│   ├── styles/                 # Global styles
-│   ├── index.html              # Main HTML file
-│   ├── main.ts                 # Application entry point
-│   ├── styles.scss             # Global styles
-│   └── environments/           # Environment-specific configurations
-├── public/                     # Public assets
-├── .vscode/                    # VS Code settings
-├── angular.json                # Angular CLI configuration
-├── package.json                # Project dependencies
-├── tsconfig.json               # TypeScript configuration
-├── tsconfig.app.json           # TypeScript app configuration
-├── tsconfig.spec.json          # TypeScript spec configuration
-├── .editorconfig               # Editor configuration
-├── .gitignore                  # Git ignore rules
-└── README.md                   # Project documentation
-```
-
-## Code Scaffolding
-
-Angular CLI includes powerful code scaffolding tools to generate new components, services, and other entities.
-
-### Generating a New Component
-
-```bash
-ng generate component component-name
-```
-
-Generates:
-- `component-name.component.ts` - Component class
-- `component-name.component.html` - Template
-- `component-name.component.scss` - Styles
-- `component-name.component.spec.ts` - Unit tests
-
-### Generating Other Angular Elements
-
-```bash
-# Generate a service
-ng generate service service-name
-
-# Generate a directive
-ng generate directive directive-name
-
-# Generate a pipe
-ng generate pipe pipe-name
-
-# Generate a module
-ng generate module module-name
-
-# Generate a class
-ng generate class class-name
-
-# Generate an interface
-ng generate interface interface-name
-```
-
-### View All Available Schematics
-
-```bash
-ng generate --help
-```
-
-## Configuration
-
-### Angular Configuration
-
-The project configuration is defined in `angular.json`:
-
-```json
-{
-  "projects": {
-    "attendance-management": {
-      "projectType": "application",
-      "sourceRoot": "src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "options": {
-            "outputPath": "dist/attendance-management",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": ["zone.js"],
-            "tsConfig": "tsconfig.app.json",
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.scss"],
-            "scripts": []
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### Environment Configuration
-
-Configure environment-specific variables in `src/environments/`:
-
-```typescript
-// environment.ts (development)
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:3000'
-};
-
-// environment.prod.ts (production)
-export const environment = {
-  production: true,
-  apiUrl: 'https://api.example.com'
-};
-```
-
-### TypeScript Configuration
-
-Core TypeScript settings in `tsconfig.json`:
-- Strict mode enabled
-- ES2020+ target
-- Module resolution configured
-
-## Best Practices
-
-### Code Style
-
-- Follow Angular style guide conventions
-- Use meaningful variable and function names
-- Keep components focused and single-responsibility
-- Document complex logic with comments
-
-### Performance
-
-- Use OnPush change detection where appropriate
-- Implement lazy loading for feature modules
-- Unsubscribe from observables to prevent memory leaks
-- Use trackBy in *ngFor loops
-
-### Security
-
-- Sanitize user input to prevent XSS attacks
-- Use Angular's built-in security features
-- Keep dependencies updated
-- Use HTTPS in production
+- `GET/POST/PATCH/DELETE /employees`
+- `GET/POST/PATCH /attendance`
+- `GET/POST/PATCH /leaveRequests`
 
 ## Troubleshooting
 
-### Common Issues
+### 1) `ERR_CONNECTION_REFUSED` for `:3000`
 
-**Issue: Port 4200 already in use**
+- Start API server with `npm run start:api`
+- Or continue using frontend-only mode (offline fallback is enabled)
+
+### 2) `Unknown` employee names in leave approval
+
+- Ensure employee list is loaded (it now uses normalized ID mapping)
+- Refresh the page after starting API if you switched modes
+
+### 3) HR page not accessible
+
+- Switch role to `HR` from navbar
+- Route guard blocks non-HR users by design
+
+### 4) Employee cannot open Dashboard/Employees/Attendance/Leave Approval
+
+- This is expected behavior with role-based access control
+- Employee role is intentionally limited to leave request submission
+
+### 5) Build warning about `data.service.ts` unused
+
+- This is legacy after migration to `employee.service.ts` / `leave.service.ts`
+- Safe to remove in cleanup, but does not block runtime
+
+## Documentation Notes for Submission
+
+For project handover or academic submission, include:
+
+- Screenshots for each module:
+  - Dashboard
+  - Employee list + add/edit dialog
+  - Attendance tracker
+  - Leave request form
+  - Leave approval (HR view)
+- Route guard behavior demonstration (Employee vs HR)
+- API mode vs fallback mode behavior summary
+- Feature checklist mapped to assignment requirements
+
+## Useful Commands
+
 ```bash
-ng serve --port 4300
+# Start Angular app
+npm start
+
+# Start mock backend
+npm run start:api
+
+# Build app
+npm run build
+
+# Run tests
+npm test
 ```
-
-**Issue: Module not found errors**
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
-
-**Issue: Build size too large**
-- Enable production build
-- Implement lazy loading
-- Remove unused dependencies
-- Use tree-shaking
-
-## Additional Resources
-
-- [Angular Official Documentation](https://angular.io)
-- [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli)
-- [Angular Best Practices](https://angular.io/guide/styleguide)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [npm Documentation](https://docs.npmjs.com/)
-
-
-## Quick Reference
-
-### Commonly Used Commands
-
-```bash
-# Development
-ng serve                          # Start dev server
-ng serve --port 4300             # Use specific port
-
-# Building
-ng build                          # Development build
-ng build --prod                   # Production build
-ng build --configuration staging  # Staging build
-
-# Testing
-ng test                           # Run unit tests
-ng test --code-coverage          # With coverage report
-ng e2e                           # Run E2E tests
-
-# Code Generation
-ng generate component name        # New component
-ng generate service name          # New service
-ng generate module name           # New module
-
-# Cleanup
-npm install                       # Install dependencies
-npm update                        # Update packages
-```
-
----
-
-**Last Updated**: January 2026  
-**Angular Version**: 20.3.13  
-**Node Version**: v18.x or higherI Overview and Command Reference](https://angular.dev/tools/cli) page.

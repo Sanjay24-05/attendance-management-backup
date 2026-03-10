@@ -4,6 +4,16 @@
     <mat-icon>menu</mat-icon>
   </button>
   <span class="app-title">Attendance Management System</span>
+  <span class="toolbar-spacer"></span>
+  <div class="role-switcher">
+    <span class="role-label">Role</span>
+    <mat-form-field appearance="outline" class="role-select-field">
+      <mat-select [(ngModel)]="selectedRole" (selectionChange)="onRoleChange($event.value)">
+        <mat-option value="Employee">Employee</mat-option>
+        <mat-option value="HR">HR</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
 </mat-toolbar>
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav
@@ -13,19 +23,19 @@
     [fixedInViewport]="true"
     [fixedTopGap]="64">
     <mat-nav-list>
-      <mat-list-item>
+      <mat-list-item *ngIf="isHrRole()">
         <button mat-button (click)="navigateTo('dashboard')" class="nav-button">
           <mat-icon matListItemIcon>dashboard</mat-icon>
           <span matListItemTitle>Dashboard</span>
         </button>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item *ngIf="isHrRole()">
         <button mat-button (click)="navigateTo('employees')" class="nav-button">
           <mat-icon matListItemIcon>people</mat-icon>
           <span matListItemTitle>Employees</span>
         </button>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item *ngIf="isHrRole()">
         <button mat-button (click)="navigateTo('attendance')" class="nav-button">
           <mat-icon matListItemIcon>check_circle</mat-icon>
           <span matListItemTitle>Attendance</span>
@@ -37,7 +47,7 @@
           <span matListItemTitle>Leave Requests</span>
         </button>
       </mat-list-item>
-      <mat-list-item>
+      <mat-list-item *ngIf="isHrRole()">
         <button mat-button (click)="navigateTo('leave-approval')" class="nav-button">
           <mat-icon matListItemIcon>assignment</mat-icon>
           <span matListItemTitle>Leave Approval</span>

@@ -3,14 +3,16 @@
 <mat-dialog-content>
   <mat-form-field class="full-width">
     <mat-label>Name</mat-label>
-    <input matInput [(ngModel)]="name" name="name" placeholder="Employee name" />
+    <input matInput [(ngModel)]="name" name="name" required #nameCtrl="ngModel" placeholder="Employee name" />
+    <mat-error *ngIf="nameCtrl.invalid && nameCtrl.touched">Name is required</mat-error>
   </mat-form-field>
 
   <mat-form-field class="full-width">
     <mat-label>Department</mat-label>
-    <mat-select [(ngModel)]="department" name="department" placeholder="Select department">
+    <mat-select [(ngModel)]="department" name="department" required #deptCtrl="ngModel" placeholder="Select department">
       <mat-option *ngFor="let dept of departments" [value]="dept">{{ dept }}</mat-option>
     </mat-select>
+    <mat-error *ngIf="deptCtrl.invalid && deptCtrl.touched">Department is required</mat-error>
   </mat-form-field>
 
   <mat-form-field class="full-width">
